@@ -1,0 +1,51 @@
+const fs = require('fs');
+var QrCode = require('qrcode-reader');
+var Jimp = require("jimp");
+var cv = require('opencv');
+
+
+// var buffer = fs.readFileSync(__dirname + '/image.png');
+
+
+try {
+  var camera = new cv.VideoCapture(0);
+  var window = new cv.NamedWindow('Video', 0)
+  setInterval(function() {
+    camera.read(function(err, im) {
+      if (err) throw err;
+      console.log(im.size())
+      if (im.size()[0] > 0 && im.size()[1] > 0){
+                if (err) throw err;
+
+
+	  Jimp.read(im, function(err, image) {
+	      if (err) {
+		  console.error(err);
+		  // TODO handle error
+	      }
+	      var qr = new QrCode();
+	      qr.callback = function(err, value) {
+		  if (err) {
+		      console.error(err);
+		      // TODO handle error
+		  }
+		  if (value) {
+		      console.log(value.result);
+		      // console.log(value);
+		  }
+	      };
+	      qr.decode(image.bitmap);
+	  });
+
+
+
+                window.show(im);
+      }
+      // window.blockingWaitKey(0, 50);
+    });
+  }, 2000);
+} catch (e){
+  console.log("Couldn't start camera:", e)
+}
+
+

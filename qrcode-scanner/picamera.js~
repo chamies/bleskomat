@@ -1,0 +1,112 @@
+// var cv = require('opencv');
+// var QrCode = require('qrcode-reader');
+const jsQR = require("jsqr");
+var Jimp = require("jimp");
+var RaspiCam = require("raspicam");
+
+
+try {
+    // var camera = new cv.VideoCapture(0);
+    // var path = require('path')
+    // var camera = new cv.VideoCapture(path.resolve("./qrcode.avi")); // play a recorded video
+    // var window = new cv.NamedWindow('Video', 0)
+
+    var imagename = "image_stream.png";
+    var camera = new RaspiCam({"mode": "timelapse", "output": imagename, "width": 640, "height": 480, "timeout": 999999999, "timelapse": 100 })
+    camera.start();
+
+    // console.log(camera);
+    //listen for the "read" event triggered when each new photo/video is saved
+    camera.on("read", function(err, timestamp, filename){ 
+	//do stuff
+    	new Jimp.read(filename, function(err, image) {
+    	    if (err) {
+    		console.error(err);
+    		// TODO handle error
+    	    }
+
+    	    const code = jsQR(image.bitmap.data, image.bitmap.width, image.bitmap.height);
+	    
+    	    if (code) {
+    		console.log("Found QR code", code);
+    		camera.stop();
+    	    }
+    	});
+	// console.log(err, timestamp, filename);
+	// process.exit();
+    });
+
+    // intervalTimer = setInterval(function() {
+    // 	// var hostname = "10.42.0.57";
+    // 	// var client = new WebSocket('ws://' + hostname + ':8084/');
+
+    // 	new Jimp.read(imagename, function(err, image) {
+    // 	    if (err) {
+    // 		console.error(err);
+    // 		// TODO handle error
+    // 	    }
+
+    // 	    const code = jsQR(image.bitmap.data, image.bitmap.width, image.bitmap.height);
+	    
+    // 	    if (code) {
+    // 		console.log("Found QR code", code);
+    // 		if (proc) proc.kill();
+    // 		clearInterval(intervalTimer);
+    // 	    }
+    // 	});
+
+
+    // 	// camera.read(function(err, im) {
+    // 	//     if (err) throw err;
+    // 	//     console.log(im.size())
+    // 	//     height = im.size()[0];
+    // 	//     width  = im.size()[1];
+    // 	//     if (width > 0 && height > 0){
+    //     //         if (err) throw err;
+    // 	// 	im.convertGrayscale();
+    //     //         window.show(im);
+    // 	// 	// TODO: find a way to stream it to the frontend
+
+    // 	// 	Jimp.read(im.toBuffer(), function(err, image) {
+    // 	// 	    if (err) {
+    // 	// 		console.error(err);
+    // 	// 		// TODO handle error
+    // 	// 	    }
+
+    // 	// 	    const code = jsQR(image.bitmap.data, image.bitmap.width, image.bitmap.height);
+		    
+    // 	// 	    if (code) {
+    // 	// 		console.log("Found QR code", code);
+    // 	// 		clearInterval(intervalTimer);
+    // 	// 	    }
+    // 	// 	});
+
+
+    // 	// 	// Jimp.read(im.toBuffer(), function(err, image) {
+    // 	// 	//     if (err) {
+    // 	// 	// 	console.error(err);
+    // 	// 	// 	// TODO handle error
+    // 	// 	//     }
+    // 	// 	//     var qr = new QrCode();
+    // 	// 	//     qr.callback = function(err, value) {
+    // 	// 	// 	if (err) {
+    // 	// 	// 	    // console.error(err);
+    // 	// 	// 	    // TODO handle error
+    // 	// 	// 	}
+    // 	// 	// 	if (value) {
+    // 	// 	// 	    console.log(value.result);
+    // 	// 	// 	    clearInterval(intervalTimer);
+    // 	// 	// 	    qrstring = value.result;
+    // 	// 	// 	}
+    // 	// 	//     };
+    // 	// 	//     // console.log(image.bitmap)
+    // 	// 	//     qr.decode(image.bitmap);
+    // 	// 	// });
+
+    // 	//     }
+    // 	//     window.blockingWaitKey(0, 50);
+    // 	// });
+    // }, 20);
+} catch (e){
+    console.log("Couldn't start camera:", e)
+}
